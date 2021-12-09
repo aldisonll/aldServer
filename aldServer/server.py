@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
-from .templateEngine import AldTemplateEngine
-import os
+from .templateEngine import AldTemplateEngine, LOOP_ARGUMENTS
+import os, re
 
 class CHARSET:
     UTF8: str = "utf-8"
@@ -23,7 +23,7 @@ class RESPONSE:
     INTERNAL_SERVER_ERROR: int = 500
     BAD_GATEWAY: int =502
 
-class Route(AldTemplateEngine):
+class Route(AldTemplateEngine, LOOP_ARGUMENTS):
     routes = []
     
     def has_route_files_duplicate_conflict(self, routes, item):
@@ -60,26 +60,29 @@ class Route(AldTemplateEngine):
             return static_folder
         return static_folder[1:]
 
-    def get_file_content(self, file_name, isTemplate):
+    def get_file_content(self, file_name, isTemplate, kwargs):
         if not isTemplate:
             with open(file_name, 'r') as file_content:
                 return file_content.read()    
         else:
             try:
                 with open('template' + file_name, 'r') as file_content:
-                    return file_content.read()
+                         file_content = file_content.read()
+                for key in kwargs:
+                    file_content = re.sub(str(key) + LOOP_ARGUMENTS.end_of_loop_header, str(kwargs[key]) + LOOP_ARGUMENTS.end_of_loop_header[2:], file_content)
+                return file_content
             except FileNotFoundError:
-                raise SystemExit("/template folder doesn\'t exist")      
+                raise SystemExit("This template doesn't exist, please create a /template folder and add a new file.")      
                     
     def create_route_for_static_files(self, static_files):
         for file_path in static_files:
-            FILE_CONTENT = self.get_file_content(file_path, isTemplate=False)
+            FILE_CONTENT = self.get_file_content(file_path, isTemplate=False, kwargs=None)
             self.create({'/' + file_path.replace('\\', '/'): [CONTENT_TYPE.TEXT_HTML, RESPONSE.OK, FILE_CONTENT, CHARSET.UTF8]})
 
     def static_folder(self, *args):
         try:
             static_folder = self.ignore_first_slash(args[0])
-        except Exception as e:
+        except Exception:
             raise SystemExit("Add a folder path to the static_folder. Example: static_folder('/static')")
         try:
             all_static_files = self.all_files_in_folder(static_folder)
@@ -88,8 +91,8 @@ class Route(AldTemplateEngine):
         else:
             return self.create_route_for_static_files(all_static_files)
 
-    def render_template(self, file_name, isTemplate=True):
-        unrendered_template =  self.get_file_content(file_name, isTemplate)
+    def render_template(self, file_name, isTemplate=True, **kwargs):
+        unrendered_template = self.get_file_content(file_name, isTemplate, kwargs)
         return self.template_render(unrendered_template)
 
 class Server(BaseHTTPRequestHandler, RESPONSE):
@@ -127,7 +130,7 @@ class createServer(Server, Route):
 
     def run(self):
         webServer = HTTPServer((self.hostname, self.port), Server, Route.routes)
-        print("AldServer - Server started http://%s:%s" % (self.hostname, self.port))
+        print("aldServer - Server started http://%s:%s" % (self.hostname, self.port))
 
         try:
             webServer.serve_forever()
@@ -135,4 +138,4 @@ class createServer(Server, Route):
             pass
 
         webServer.server_close()
-        print("Server stopped.")
+        print("aldServer - stopped.")

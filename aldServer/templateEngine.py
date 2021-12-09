@@ -1,6 +1,9 @@
 import re
 from typing import List, Tuple
 
+class LOOP_ARGUMENTS:
+    end_of_loop_header = r'+?%}'
+
 class RegexThings:
     loop = r'{%for.*?{%endloop%}'
     variable = r'{{.*}}'
@@ -11,7 +14,7 @@ class RegexThings:
     loop_starts_with = '{%for '
     loop_ends_with = '{%endloop%}'
 
-class AldTemplateEngine:
+class AldTemplateEngine(RegexThings, LOOP_ARGUMENTS):
     def find_template_loops(self, template: str) -> List[str]:
         loops: List[str] = re.findall(RegexThings.loop, template, re.DOTALL)
         return loops
@@ -29,7 +32,10 @@ class AldTemplateEngine:
     def execute(self, for_loop_header: str, vars: str) -> str:
         vars = vars[0x1:].replace('\n', '').replace('{{', '{').replace('}}', '}')
         code = f'''''.join(f'{vars}' {for_loop_header})'''
-        return eval(code)
+        try:
+            return eval(code)
+        except Exception as e:
+            raise SystemExit(e)    
 
     def generate_template(self, template: str) -> str:
         new_template = template
