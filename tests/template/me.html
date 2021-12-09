@@ -1,0 +1,25 @@
+<h1>For loops</h1>
+{%for i in range(5)%}
+    <li>{{i}}</li>
+{%endloop%}
+
+<h1>loop using enumerate</h1>
+{%for i, x in enumerate(range(5))%}
+    <li>{{i}} - {{x}}</li>
+{%endloop%}
+
+<h2>using multiple loops</h2>
+{%for i in range(5)%}
+    <li>{{i}}</li>
+{%endloop%}
+<ol>
+    
+{%for i in range(5)%}
+    {{ i }} x 7 = {{i * 7}} <br>
+{%endloop%}
+</ol> 
+
+<h2>looping through a list</h2>
+{%for item in ["hello", "world"]}
+    <li>{{item}}</li>
+{%endloop%}
