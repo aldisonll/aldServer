@@ -1,3 +1,3 @@
 ## aldServer - a template server
 
-Inspired By Flask and Jinja. Super easy to use!
+Inspired by Flask and Jinja. Super easy to use!
