@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
-from .templateEngine import AldTemplateEngine, LOOP_ARGUMENTS
+from .templateEngine import AldTemplateEngine, LOOP_ARGUMENTS, RegexThings
 import os, re
 
 class CHARSET:
@@ -73,6 +73,12 @@ class Route(AldTemplateEngine, LOOP_ARGUMENTS):
             try:
                 with open('template' + file_name, 'r') as file_content:
                          file_content = file_content.read()
+                single_variables = re.findall(RegexThings.singleVariable, file_content)
+                for single_variable in single_variables:
+                    if kwargs.get(single_variable):
+                        file_content = re.sub(RegexThings.singleVariable[:3] + single_variable + RegexThings.singleVariable[7:], kwargs.get(single_variable), file_content)
+                    else: 
+                        raise SystemExit(f"This template variable ({single_variable}) has never been defined")          
                 for key in kwargs:
                     file_content = re.sub(str(key) + LOOP_ARGUMENTS.end_of_loop_header, str(kwargs[key]) + LOOP_ARGUMENTS.end_of_loop_header[2:], file_content)
                 return file_content

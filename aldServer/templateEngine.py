@@ -9,6 +9,8 @@ class RegexThings:
     variable = r'{{.*}}'
     loop_value = r'for '
 
+    singleVariable = r'{{%(.*)%}}'
+
     remove_template_from_loop = r'{%for(.*?){%endloop%}'
 
     loop_starts_with = '{%for '

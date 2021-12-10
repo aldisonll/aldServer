@@ -8,7 +8,7 @@
     <li>{{i}} - {{x}}</li>
 {%endloop%}
 
-<h2>using multiple loops</h2>
+<h1>using multiple loops</h1>
 {%for i in range(5)%}
     <li>{{i}}</li>
 {%endloop%}
@@ -17,7 +17,10 @@
     {{ i }} x 7 = {{i * 7}} <br>
 {%endloop%}
 
-<h2>looping through a list</h2>
+<h1>looping through a list</h1>
 {%for item in ["hello", "world"]}
     <li>{{item}}</li>
 {%endloop%}
+
+<h1>Passing a variable</h1>
+{{%name%}}
