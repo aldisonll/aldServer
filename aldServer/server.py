@@ -21,22 +21,27 @@ class RESPONSE:
     FORBIDDEN: int = 403
     NOT_FOUND: int = 404
     INTERNAL_SERVER_ERROR: int = 500
-    BAD_GATEWAY: int =502
+    BAD_GATEWAY: int = 502
+
+class NOT_FOUND: 
+    HTML: str = '''<h1>404 - Page Not Found</h1>
+    <p>The resource you are looking for might have been removed, had its name changed, or it\'s temporarily unavailable.</p>
+    '''
 
 class Route(AldTemplateEngine, LOOP_ARGUMENTS):
     routes = []
     
-    def has_route_files_duplicate_conflict(self, routes, item):
+    def has_route_files_duplicate_conflict(self, routes: list, item: str) -> bool:
         if item in routes:
             raise SystemExit(f'{list(item.keys())[0]} is duplicated route')
         return False
 
-    def create(self, item):
+    def create(self, item: str) -> None:
         if not self.has_route_files_duplicate_conflict(self.routes, item):
             self.routes.append(item)
     
-    def create_route(self, *args):
-        def inner(func):
+    def create_route(self, *args: list) -> object:
+        def inner(func: object) -> None:
             try:
                 path = args[0]
                 content_type = args[1]
@@ -48,19 +53,19 @@ class Route(AldTemplateEngine, LOOP_ARGUMENTS):
             self.create({path: [content_type, response_code, content, charset]})
         return inner             
     
-    def all_files_in_folder(self, folder_name):
+    def all_files_in_folder(self, folder_name: str) -> list:
         all_files = []
         for path, _, files in os.walk(folder_name):
             for name in files:
                 all_files.append(os.path.join(path, name))
         return all_files
     
-    def ignore_first_slash(self, static_folder):
+    def ignore_first_slash(self, static_folder: str) -> str:
         if not static_folder.startswith('/'):
             return static_folder
         return static_folder[1:]
 
-    def get_file_content(self, file_name, isTemplate, kwargs):
+    def get_file_content(self, file_name: str, isTemplate: bool, kwargs: list) -> str:
         if not isTemplate:
             with open(file_name, 'r') as file_content:
                 return file_content.read()    
@@ -72,14 +77,14 @@ class Route(AldTemplateEngine, LOOP_ARGUMENTS):
                     file_content = re.sub(str(key) + LOOP_ARGUMENTS.end_of_loop_header, str(kwargs[key]) + LOOP_ARGUMENTS.end_of_loop_header[2:], file_content)
                 return file_content
             except FileNotFoundError:
-                raise SystemExit("This template doesn't exist, please create a /template folder and add a new file.")      
+                raise SystemExit("Template doesn't exist, please create a /template folder and add a new file.")      
                     
-    def create_route_for_static_files(self, static_files):
+    def create_route_for_static_files(self, static_files: list) -> None:
         for file_path in static_files:
             FILE_CONTENT = self.get_file_content(file_path, isTemplate=False, kwargs=None)
             self.create({'/' + file_path.replace('\\', '/'): [CONTENT_TYPE.TEXT_HTML, RESPONSE.OK, FILE_CONTENT, CHARSET.UTF8]})
 
-    def static_folder(self, *args):
+    def static_folder(self, *args) -> None:
         try:
             static_folder = self.ignore_first_slash(args[0])
         except Exception:
@@ -91,18 +96,18 @@ class Route(AldTemplateEngine, LOOP_ARGUMENTS):
         else:
             return self.create_route_for_static_files(all_static_files)
 
-    def render_template(self, file_name, isTemplate=True, **kwargs):
+    def render_template(self, file_name: str, isTemplate: bool = True, **kwargs) -> str:
         unrendered_template = self.get_file_content(file_name, isTemplate, kwargs)
         return self.template_render(unrendered_template)
 
 class Server(BaseHTTPRequestHandler, RESPONSE):
     
     @property
-    def _params(self):
+    def _params(self) -> str: 
         return parse_qs(urlparse(self.path).query)
     
     @property
-    def _route(self):
+    def _route(self) -> bool or str:
         for route in Route.routes:
             endpointPath = urlparse(self.path).path 
             if route.get(endpointPath):
@@ -120,7 +125,9 @@ class Server(BaseHTTPRequestHandler, RESPONSE):
             self.wfile.write(bytes(content, charset_parameter))
         elif self.path != '/favicon.ico':
             self.send_response(RESPONSE.NOT_FOUND)
+            self.send_header('Content-Type', CONTENT_TYPE.TEXT_HTML)
             self.end_headers()
+            self.wfile.write(bytes(NOT_FOUND.HTML, CHARSET.UTF8))
             print(f'AldServer - Page Not Found "GET {self.path}" - 404')
 
 @dataclass
