@@ -10,8 +10,8 @@ pip3 install aldSever
 #### Simple Code Example
 ```python 
 # imports
-from aldServerimport createServer, Route, Debug
-from aldServerimport RESPONSE, CONTENT_TYPE, CHARSET
+from aldServer.server import createServer, Route, Debug
+from aldServer.server import RESPONSE, CONTENT_TYPE, CHARSET
 
 # server debugging (false by default)
 Debug.debug = True 
