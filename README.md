@@ -8,7 +8,7 @@ pip3 install aldSever
 ```
 
 #### Simple Code Example
-```bash 
+```python 
 # imports
 from aldServerimport createServer, Route, Debug
 from aldServerimport RESPONSE, CONTENT_TYPE, CHARSET
@@ -50,7 +50,7 @@ server.run()
 
 - Different loops:
 
-```bash
+```python
 #1 -  to_dos - is given as a parameter
 {%for to_do in to_dos%}
     <li>{{to_do}}</li>
@@ -78,7 +78,7 @@ server.run()
 ```
 
 - Printing variables 
-```bash 
+```python 
 <h3>Hello my name is {{%name%}},</h3>
 <h4>and this server is made with aldServer.</h4> 
 ```
