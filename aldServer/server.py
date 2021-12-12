@@ -28,12 +28,24 @@ class NOT_FOUND:
     <p>The resource you are looking for might have been removed, had its name changed, or it\'s temporarily unavailable.</p>
     '''
 
+@dataclass
+class Debug:
+    debug: bool = False
+
+class Error():
+    def show(error):
+        if Debug.debug:
+            raise SystemError(error)
+        else: 
+            print(error)    
+
 class Route(AldTemplateEngine, LOOP_ARGUMENTS):
     routes = []
-    
+            
     def has_route_files_duplicate_conflict(self, routes: list, item: str) -> bool:
         if item in routes:
-            raise SystemExit(f'{list(item.keys())[0]} is duplicated route')
+            pass
+            Error.show(f'{list(item.keys())[0]} is duplicated route')
         return False
 
     def create(self, item: str) -> None:
@@ -48,7 +60,7 @@ class Route(AldTemplateEngine, LOOP_ARGUMENTS):
                 response_code = args[2]
                 charset = args[3]
             except IndexError:
-                raise SystemExit("@route_create arguments are wrong or missing.\nExample: @route_create('/test', CONTENT_TYPE.TEXT_HTML, RESPONSE.OK, CHARSET.UTF8, route=route)")
+                Error.show("@route_create arguments are wrong or missing.\nExample: @route_create('/test', CONTENT_TYPE.TEXT_HTML, RESPONSE.OK, CHARSET.UTF8, route=route)")
             content = func()
             self.create({path: [content_type, response_code, content, charset]})
         return inner             
@@ -78,12 +90,12 @@ class Route(AldTemplateEngine, LOOP_ARGUMENTS):
                     if kwargs.get(single_variable):
                         file_content = re.sub(RegexThings.singleVariable[:3] + single_variable + RegexThings.singleVariable[7:], kwargs.get(single_variable), file_content)
                     else: 
-                        raise SystemExit(f"This template variable ({single_variable}) has never been defined")          
+                        Error.show(f"This template variable ({single_variable}) has never been defined.")          
                 for key in kwargs:
                     file_content = re.sub(str(key) + LOOP_ARGUMENTS.end_of_loop_header, str(kwargs[key]) + LOOP_ARGUMENTS.end_of_loop_header[2:], file_content)
                 return file_content
             except FileNotFoundError:
-                raise SystemExit("Template doesn't exist, please create a /template folder and add a new file.")      
+                Error.show("Template doesn't exist, please create a /template folder and add a new file.")      
                     
     def create_route_for_static_files(self, static_files: list) -> None:
         for file_path in static_files:
@@ -94,11 +106,11 @@ class Route(AldTemplateEngine, LOOP_ARGUMENTS):
         try:
             static_folder = self.ignore_first_slash(args[0])
         except Exception:
-            raise SystemExit("Add a folder path to the static_folder. Example: static_folder('/static')")
+            Error.show("Add a folder path to the static_folder. Example: static_folder('/static')")
         try:
             all_static_files = self.all_files_in_folder(static_folder)
         except FileNotFoundError as e:
-            raise SystemExit(e)
+            Error.show(e)
         else:
             return self.create_route_for_static_files(all_static_files)
 
@@ -107,7 +119,7 @@ class Route(AldTemplateEngine, LOOP_ARGUMENTS):
         return self.template_render(unrendered_template)
 
 class Server(BaseHTTPRequestHandler, RESPONSE):
-    
+
     @property
     def _params(self) -> str: 
         return parse_qs(urlparse(self.path).query)
@@ -142,6 +154,7 @@ class createServer(Server, Route):
     port: int
 
     def run(self):
+        print("aldServer - Running in debug mode.") if Debug.debug else print("aldServer - Running in release mode.")
         webServer = HTTPServer((self.hostname, self.port), Server, Route.routes)
         print("aldServer - Server started http://%s:%s" % (self.hostname, self.port))
 
@@ -151,4 +164,4 @@ class createServer(Server, Route):
             pass
 
         webServer.server_close()
-        print("aldServer - stopped.")
+        print("aldServer - Stopped.")

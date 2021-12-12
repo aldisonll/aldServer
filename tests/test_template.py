@@ -1,8 +1,11 @@
 import sys
 sys.path.append('../')
-from aldServer.server import createServer
+from aldServer.server import Debug, createServer
 from aldServer.server import Route
 from aldServer.server import RESPONSE, CONTENT_TYPE, CHARSET
+
+# server debugging 
+Debug.debug = False
 
 # crete route obj
 route = Route()
