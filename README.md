@@ -42,7 +42,7 @@ def template_test():
 
 # create the server
 server = createServer(hostname="localhost", port=3333)
-# run the creted server
+# run the created server
 server.run()
 ```
 
