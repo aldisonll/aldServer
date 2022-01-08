@@ -44,7 +44,6 @@ class Route(AldTemplateEngine, LOOP_ARGUMENTS):
             
     def has_route_files_duplicate_conflict(self, routes: list, item: str) -> bool:
         if item in routes:
-            pass
             Error.show(f'{list(item.keys())[0]} is duplicated route')
         return False
 
